@@ -1,0 +1,98 @@
+-- create a table
+create table users(
+name varchar(100), 
+age int, 
+email varchar(100)
+)
+
+-- there is no data in the table
+select * from users
+
+-- add some data in the table
+INSERT INTO users (name, age, email) values
+('ram', 12, 'ram@codeverra.com')
+
+-- there is one row in the table now
+select * from users
+
+-- adding more rows in the table
+INSERT INTO users (name, age, email) VALUES
+('ram', 12, 'ram@codeverra.com'),
+('shyam', 15, 'shyam@codeverra.com'),
+('mohan', 18, 'mohan@codeverra.com'),
+('sita', 20, 'sita@codeverra.com'),
+('gita', 22, 'gita@codeverra.com'),
+('ravi', 25, 'ravi@codeverra.com'),
+('amit', 28, 'amit@codeverra.com'),
+('neha', 19, 'neha@codeverra.com'),
+('rohit', 30, 'rohit@codeverra.com'),
+('priya', 24, 'priya@codeverra.com'),
+('vikas', 27, 'vikas@codeverra.com'),
+('anita', 23, 'anita@codeverra.com'),
+('karan', 21, 'karan@codeverra.com'),
+('pooja', 26, 'pooja@codeverra.com'),
+('deepak', 29, 'deepak@codeverra.com'),
+('nisha', 17, 'nisha@codeverra.com'),
+('arjun', 31, 'arjun@codeverra.com'),
+('kiran', 33, 'kiran@codeverra.com'),
+('manish', 35, 'manish@codeverra.com'),
+('sunita', 28, 'sunita@codeverra.com');
+
+-- check all the data in the table
+select * from users
+
+-- filter using where clause
+select * from users
+where name = 'ram'
+
+select * from users
+where name in ('ram', 'sunita')
+
+
+-- add a city column
+ALTER TABLE users
+ADD COLUMN city VARCHAR(100);
+
+select * from users
+
+-- add city values for a filter
+UPDATE users
+SET city = 'Delhi'
+WHERE name = 'ram';
+
+select * from users
+
+--- adding for others as well
+UPDATE users
+SET city = CASE
+    WHEN name = 'ram' THEN 'Delhi'
+    WHEN name = 'shyam' THEN 'Mumbai'
+    WHEN name = 'mohan' THEN 'Bangalore'
+    WHEN name = 'sita' THEN 'Chennai'
+    WHEN name = 'gita' THEN 'Kolkata'
+    WHEN name = 'ravi' THEN 'Hyderabad'
+    WHEN name = 'amit' THEN 'Pune'
+    WHEN name = 'neha' THEN 'Ahmedabad'
+    WHEN name = 'rohit' THEN 'Jaipur'
+    WHEN name = 'priya' THEN 'Lucknow'
+END;
+
+select * from users
+
+-- another way to update 
+UPDATE users u
+SET city = v.city
+FROM (
+    VALUES
+    ('ram','New Delhi'),
+    ('shyam','Navi Mumbai'),
+    ('mohan','Urban Bangalore'),
+    ('sita','Madurai'),
+    ('gita','Kolkata')
+) AS v(name, city)
+WHERE u.name = v.name;
+
+
+select * from users
+
+

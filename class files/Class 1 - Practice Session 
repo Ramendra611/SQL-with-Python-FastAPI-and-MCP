@@ -1,0 +1,133 @@
+CREATE TABLE books (
+    book_id     SERIAL        PRIMARY KEY,
+    title       VARCHAR(200)  NOT NULL,
+    author      VARCHAR(100)  NOT NULL,
+    genre       VARCHAR(50),
+    price       NUMERIC(6,2)  CHECK (price >= 0),
+    pages       INT           CHECK (pages > 0),
+    published   INT,          -- year e.g. 2020
+    in_stock    BOOLEAN       DEFAULT TRUE
+)
+
+
+INSERT INTO books (title, author, genre, price, pages, published, in_stock)
+VALUES
+    ('The Alchemist',              'Paulo Coelho',      'Fiction',     14.99, 208,  1988, TRUE),
+    ('Atomic Habits',              'James Clear',       'Self-Help',   16.99, 320,  2018, TRUE),
+    ('Sapiens',                    'Yuval Noah Harari', 'History',     18.99, 443,  2011, TRUE),
+    ('The Great Gatsby',           'F. Scott Fitzgerald','Fiction',     9.99, 180,  1925, TRUE),
+    ('Thinking, Fast and Slow',    'Daniel Kahneman',   'Psychology',  17.99, 499,  2011, FALSE),
+    ('1984',                       'George Orwell',     'Fiction',     10.99, 328,  1949, TRUE),
+    ('Educated',                   'Tara Westover',     'Memoir',      15.99, 352,  2018, TRUE),
+    ('The Lean Startup',           'Eric Ries',         'Business',    19.99, 336,  2011, TRUE),
+    ('Dune',                       'Frank Herbert',     'Sci-Fi',      13.99, 412,  1965, FALSE),
+    ('To Kill a Mockingbird',      'Harper Lee',        'Fiction',     11.99, 281,  1960, TRUE);
+
+
+select * from books
+
+
+-- Q1. Show all books in the table — every column, every row.
+select * from books
+
+select * from books limit 3
+
+-- Q2. Show only the title and author of every book.
+select title, author from books
+
+
+-- Q3. How many genres are there?
+select genre from  books -- this generates the column genre
+
+select  distinct genre from books  -- this is the list of unique genres
+
+select  count(distinct genre) from books -- this gives the count of the genres
+
+-- Q4. Show all books that belong to the 'Fiction' genre.
+
+select * from books where genre = 'Fiction' --this generate the list of books
+
+select count(*) from books where genre = 'Fiction' --this will give the count of the rows based on the filter
+
+-- Q5. Show all books that are currently in stock (in_stock = TRUE), sorted by price from lowest to highest.
+select * 
+from books 
+where in_stock = true
+order by price asc -- this will sort the records ascending based on price
+
+select * 
+from books 
+where in_stock = true
+order by price desc -- this will sort the records ascending based on price
+
+-- Q6. Show all books where the price is less than 15.00. Display only title, author, and price.
+select title, author, price 
+from books
+where price < 15
+order by price desc
+
+-- get count of book with above filter
+select count(*) 
+from books
+where price < 15
+
+--Q7. How many books are in the table in total?
+select count(*) from books
+
+--Q8. What is the most expensive book? Show its title and price.
+select title, price from books order by price desc limit 1 -- sort the records descending and take the first row
+
+select * 
+from books 
+order by price desc 
+limit 1
+
+-- we can find what is the maximum price and then filer the table to get books where price = max(price)
+select max(price) from books  -- this finds the the max of the price
+
+select * from books where price = 19.99 
+
+select * from books where price = (select max(price) from books)
+
+
+INSERT INTO books (title, author, genre, price, pages, published, in_stock)
+VALUES
+    ('Harry Potter',              'JK Rowling',      'Fiction',     19.99, 208,  1998, TRUE)
+
+select * 
+from books 
+order by price desc 
+-- limit 1
+
+
+
+-- Q9. A new book has arrived. Insert it into the table:
+	-- Title: 'Deep Work'
+	-- Author: 'Cal Newport'
+	-- Genre: 'Self-Help'
+	-- Price: 15.49
+	-- Pages: 304
+	-- Published: 2016
+	-- In Stock: TRUE
+
+INSERT INTO books (title, author, genre, price, pages, published, in_stock)
+VALUES
+    ('Deep Work',              'Cal Newport',      'Self-Help',     15.49, 304,  2016, TRUE)
+select * 
+from books 
+
+
+-- Q10. The price of 'Sapiens' has been reduced. Update its price to 14.99.
+
+UPDATE books 
+set price = 14.99 
+where title = 'Sapiens'
+
+select * 
+from books 
+
+create database shopDB
+
+
+
+	

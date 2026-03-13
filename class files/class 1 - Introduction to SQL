@@ -1,0 +1,216 @@
+-- Common SQL Command Groups
+
+-- Data Definition Language(DDL) ( CREATE, DROP, RENAME, ALTER )
+-- Data Manipulation Language(DML) ( INSERT, UPDATE, DELETE, MERGE)
+-- Data Control Language ( GRANT)
+-- Data Query Language ( DQL) ( SELECT, WHERE)
+
+
+-- creating a table for students
+CREATE TABLE students(
+full_name varchar(100), -- variable character 
+city varchar(50) --
+)
+
+-- see the data in the table
+SELECT * FROM students -- this will fetch all the records from the student table
+
+-- insert some data in side my students table
+INSERT INTO students (full_name, city) 
+VALUES ('Lalit Mohan', 'New Delhi' )
+
+INSERT INTO students (full_name, city) 
+VALUES ('Sunil Sawant', 'Hyderabad' )
+
+INSERT INTO students (full_name, city) 
+VALUES ('Ramesh Kumar', 'Bengaluru' )
+
+INSERT INTO students (full_name, city) 
+VALUES ('Rajiv Sharma', 'New Delhi' )
+
+
+INSERT INTO students (full_name, city) 
+VALUES 
+('Rajiv Sharma', 'New Delhi' ),
+('Mohan Yadav', 'Hyderabad' )
+
+
+-- again i want to  check my content in my table
+SELECT * FROM students
+
+
+---
+-- 1. How do we add more constraints to the create table?
+-- 2. How do we do more with the select statement?
+
+
+------------- Filtering the data -------------
+-- Question: who are the students from New Delhi?
+
+-- Filter the data using WHERE ( common pattern SELECT -> FROM -> WHERE)
+SELECT * 
+FROM students
+WHERE city = 'New Delhi'
+
+SELECT * 
+FROM students
+WHERE city = 'Hyderabad'
+
+
+
+-- Create a table with some constraints
+
+-- Unique ( can have NULL values)
+-- NOT NULL
+-- PRIMARY KEY ( UNIQUE + NOT NULL)
+
+-- Common DataTypes(
+INT, 
+SERIAL, 
+FLOAT, 
+NUMERIC(p,s), 
+VARCHAR(N), 
+TEXT, 
+BOOLEAN, 
+DATE, 
+TIMESTAMP, 
+TIME, 
+)
+
+
+-- DROP A TABLE
+DROP TABLE products
+
+CREATE  TABLE products (
+product_id  SERIAL  PRIMARY KEY,-- the value has to be unique and not null
+name VARCHAR(100) NOT NULL,  -- the value cant be null
+category VARCHAR(100) , 
+price FLOAT CHECK(price >=0), --using a check constraint
+stock INT  DEFAULT 0 , -- by default the value will be 0
+is_available BOOLEAN DEFAULT TRUE -- this can be only True or False
+)
+
+-- see the content of the table
+SELECT * FROM products
+
+-- Insert some data into the products table
+INSERT INTO products (name, category, price, stock)
+VALUES ('Apple MacBook Pro', 'Laptops', 1999.99, 15);
+
+INSERT INTO products (name, category, price, stock)
+VALUES
+    ('Samsung TV 55"',    'Electronics', 799.99,  30),
+    ('Nike Running Shoes','Clothing',    129.99,  50),
+    ('Python Cookbook',   'Books',        49.99, 100),
+    ('USB-C Cable',       'Accessories',   9.99, 200 );
+
+INSERT INTO products (name, category, price, stock, is_available)
+VALUES ('Apple MacBook Air', 'Laptops', 599.99, 25, false);
+
+
+SELECT * FROM products
+
+------ Explore more on the SELECT Query ------
+
+-- Get all the rows and all the columns
+SELECT  * FROM products
+
+-- Use LIMIT command
+SELECT  * 
+FROM products
+LIMIT 5
+
+-- We can select specific columns
+SELECT name, price
+FROM products
+LIMIT 3
+
+-- show the categories
+select category from products
+
+-- show the unique categories
+select distinct category from products
+
+-- Show the name and stock of the products from electronics ( filtering)
+
+SELECT name, stock 
+FROM products
+WHERE category = 'Electronics'
+
+-- Show the name and stock of the products from electronics or clothing ( filtering)
+SELECT name, stock, category , price
+FROM products
+WHERE category IN ('Electronics', 'Clothing')
+
+-- Show the details of the products from electronics or clothing where price is more than 700 ( filtering)
+SELECT name, stock, category , price
+FROM products
+WHERE category IN ('Electronics', 'Clothing')
+AND price >700
+
+
+-- UPDATE some records
+select * from products
+
+-- Update the price of Apple Macbook Pro from 1999.99 to 1599.99
+UPDATE products
+SET PRICE = 1599
+where name = 'Apple MacBook Pro'
+
+UPDATE products
+SET PRICE = 25.99
+where product_id = 4
+
+select * from products
+
+UPDATE products
+SET price =89.99, stock =145
+where name like '%Nike%' -- didnt need write the entire string.(Matching using wildcards)
+
+select * from products
+
+-- DELETE command to remove data from a table
+DELETE FROM products
+where product_id = 3
+
+select * from products
+
+-- DELETE ( we can delete the records based on some condition)
+-- delete all products which are not available
+delete from products
+where is_available = false 
+
+select * from products
+
+
+-- ALTER - change the structure of an existing table 
+
+-- change a columns data type
+ALTER TABLE products
+ALTER COLUMN stock TYPE BIGINT
+
+-- add some constraint like stock >=0
+ALTER TABLE products
+ADD CONSTRAINT stock_constraint check(stock >=0)
+
+INSERT INTO products (name, category, price, stock, is_available)
+VALUES ('Apple MacBook Air', 'Laptops', 599.99, -25, false);
+
+select * from products
+
+
+-- TRUNCATE --> remove the data but the table will exist ( no filter )
+select * from students
+
+TRUNCATE TABLE students -- this will remove all the content of the table but table will exist
+
+-- DROP ( will remove data + the table. there is no filter)
+DROP TABLE students -- this will remove the table
+
+select * from products
+
+
+
+
+
+
