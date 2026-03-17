@@ -1,0 +1,288 @@
+select * from customers limit 10
+
+select * from orders order by customer_id
+
+-- Who are the customers (id) who have placed an order?
+select distinct(customer_id) from orders order by customer_id
+
+-- Who are the customer (id) who have not placed an order?
+select distinct(id) from customers 
+where id not in (select distinct(customer_id) from orders order by customer_id)
+order by id
+
+-- Get the names of the customers who have placed an order
+---- strategy : inner join the customers and orders table and get distinct names
+
+select distinct (name) from customers
+inner join orders
+on customers.id = orders.customer_id
+order by customers.name
+
+
+-- Get the names of customers who have not placed order?
+--- Strategy : left Join the customers and orders table and filter out the null from orders
+
+select name from customers cust
+left join orders o
+on cust.id = o.customer_id
+where o.id is Null 
+order by cust.id
+
+
+
+
+-- Which customer has placed how many orders? Show name of the name and the count
+
+select c.name, count(*) from customers c
+join orders o
+on c.id = o.customer_id
+group by name
+order by c.name
+
+
+-- select * from categories
+-- Which category has how many products? What is the average price of each category?
+select 
+	cat.name, 
+	count(*), 
+	round(avg(prod.price_inr), 2) as product_count 
+from products prod
+join categories cat
+on prod.category_id = cat.id
+group by cat.name
+
+-- "Sports"	4	1499.00
+-- "Home & Kitchen"	4	4749.00
+-- "Electronics"	6	42749.00
+-- "Clothing"	4	3399.00
+-- "Books"	4	374.50
+-- "Beauty"	3	349.00
+
+-- Verify the above results
+select avg(price_inr) from products 
+where category_id = (select id from categories where name ='Clothing')
+
+
+select * from order_items
+-- Joining more than 2 tables ( customer, orders and order_items)
+
+select * from order_items
+
+
+-- select * from orders
+-- where customer_id = 3
+
+-- select * from order_items 
+-- join products 
+-- on order_items.product_id = products.id
+-- where order_id = 2
+
+
+-- Find out which customer(name) has ordered which product(id)
+select 
+	cust.id as customer_id, 
+	cust.name as customer_name,
+	cust.city as customer_city,
+	oi.product_id as product_id
+	
+from customers cust
+join orders  ord
+on cust.id = ord.customer_id
+join order_items oi
+on ord.id = oi.order_id
+
+
+select * from products
+
+-- Find out which customer(name) has ordered which product(name) 
+select 
+	cust.id as customer_id, 
+	cust.name as customer_name,
+	cust.city as customer_city,
+	oi.product_id as product_id, 
+	prod.name as product_name, 
+	prod.category_id as category
+	
+from customers cust
+join orders  ord
+on cust.id = ord.customer_id
+join order_items oi
+on ord.id = oi.order_id
+join products prod
+on oi.product_id  = prod.id
+
+
+-- Find out which customer(name) has ordered which product(name) along with  description
+select 
+	cust.id as customer_id, 
+	cust.name as customer_name,
+	cust.city as customer_city,
+	oi.product_id as product_id, 
+	prod.name as product_name, 
+	prod.category_id as category, 
+	cat.name as category_name,
+	cat.description as category_description
+	
+from customers cust
+join orders  ord
+on cust.id = ord.customer_id
+join order_items oi
+on ord.id = oi.order_id
+join products prod
+on oi.product_id  = prod.id
+join categories cat
+on prod.category_id = cat.id
+
+
+
+
+-- Alternate way using a subquery
+with aggregate as (select 
+	cust.id as customer_id, 
+	cust.name as customer_name,
+	cust.city as customer_city,
+	oi.product_id as product_id, 
+	prod.name as product_name, 
+	prod.category_id as category
+	
+from customers cust
+join orders  ord
+on cust.id = ord.customer_id
+join order_items oi
+on ord.id = oi.order_id
+join products prod
+on oi.product_id  = prod.id)
+
+select * from aggregate
+join categories
+on aggregate.category = categories.id
+
+-- 
+
+select * from
+(select 
+	cust.id as customer_id, 
+	cust.name as customer_name,
+	cust.city as customer_city,
+	oi.product_id as product_id, 
+	prod.name as product_name, 
+	prod.category_id as category
+	
+from customers cust
+join orders  ord
+on cust.id = ord.customer_id
+join order_items oi
+on ord.id = oi.order_id
+join products prod
+on oi.product_id  = prod.id) aggregate
+
+join categories on aggregate.category = categories.id
+
+
+
+-- What is the Revenue per customer
+with order_item_revenue as (select c.id as customer_id,  -- this is at order_items_level
+		c.name, 
+		orders.id as order_id,
+		orders.status as order_status, 
+		order_items.quantity, 
+		order_items.unit_price , 
+		order_items.quantity * order_items.unit_price as total_revenue
+from customers c
+join orders on c.id = orders.customer_id
+join order_items on order_items.order_id = orders.id
+where orders.status not in ('Cancelled')) -- we dont want to include the cancelled orders
+
+select name, sum(total_revenue) as revenue
+from order_item_revenue
+group by name
+order by revenue desc
+
+
+-- What is the revenue per city?
+
+with order_item_revenue as (select c.id as customer_id,  -- this is at order_items_level
+		c.name, 
+		c.city, 
+		orders.id as order_id,
+		orders.status as order_status, 
+		order_items.quantity, 
+		order_items.unit_price , 
+		order_items.quantity * order_items.unit_price as total_revenue
+from customers c
+join orders on c.id = orders.customer_id
+join order_items on order_items.order_id = orders.id
+where orders.status not in ('Cancelled')) -- we dont want to include the cancelled orders
+
+select city, sum(total_revenue) as revenue
+from order_item_revenue
+group by city
+order by revenue desc
+
+
+-- What is the revenue per city per category(id)?
+
+with order_item_revenue as (select c.id as customer_id,  -- this is at order_items_level
+		c.name, 
+		c.city, 
+		orders.id as order_id,
+		orders.status as order_status, 
+		order_items.quantity, 
+		order_items.unit_price , 
+		order_items.quantity * order_items.unit_price as total_revenue, 
+		products.name as product_name, 
+		products.category_id as category_id
+from customers c
+join orders on c.id = orders.customer_id
+join order_items on order_items.order_id = orders.id
+join products on order_items.product_id = products.id
+where orders.status not in ('Cancelled')) -- we dont want to include the cancelled orders
+
+select city,category_id , sum(total_revenue) as revenue
+from order_item_revenue
+group by city, category_id
+order by city , revenue desc
+
+-- What is the revenue per city per category ( name )?? 
+
+with order_item_revenue as (select c.id as customer_id,  -- this is at order_items_level
+		c.name, 
+		c.city, 
+		orders.id as order_id,
+		orders.status as order_status, 
+		order_items.quantity, 
+		order_items.unit_price , 
+		order_items.quantity * order_items.unit_price as total_revenue, 
+		products.name as product_name, 
+		products.category_id as category_id
+from customers c
+join orders on c.id = orders.customer_id
+join order_items on order_items.order_id = orders.id
+join products on order_items.product_id = products.id
+where orders.status not in ('Cancelled')) -- we dont want to include the cancelled orders
+
+select city,categories.name as category_name,   sum(total_revenue) as revenue
+from order_item_revenue oir
+join categories  on categories.id = oir.category_id
+group by city, categories.name
+order by city , revenue desc
+
+
+-- Best selling product in each category
+
+
+
+-- Self join
+
+
+
+
+
+
+
+
+
+
+select * from categories
+
+
