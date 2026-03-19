@@ -1,0 +1,452 @@
+-- delete and recreate the tables if they are present
+DROP TABLE IF EXISTS watch_history;
+DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS show_genres;
+DROP TABLE IF EXISTS shows;
+DROP TABLE IF EXISTS genres;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id              SERIAL          PRIMARY KEY,
+    name            VARCHAR(100)    NOT NULL,
+    email           VARCHAR(150)    NOT NULL UNIQUE,
+    city            VARCHAR(50)     NOT NULL,
+    state           VARCHAR(50)     NOT NULL,
+    joined_on       DATE            NOT NULL DEFAULT CURRENT_DATE,
+    plan            VARCHAR(20)     NOT NULL DEFAULT 'Free'
+                                    CHECK (plan IN ('Free', 'Mobile', 'Super', 'Premium'))
+);
+
+CREATE TABLE genres (
+    id      SERIAL          PRIMARY KEY,
+    name    VARCHAR(50)     NOT NULL UNIQUE
+);
+
+CREATE TABLE shows (
+    id              SERIAL          PRIMARY KEY,
+    title           VARCHAR(150)    NOT NULL,
+    language        VARCHAR(30)     NOT NULL,
+    release_year    INT             NOT NULL CHECK (release_year >= 2000),
+    rating          NUMERIC(3,1)    CHECK (rating BETWEEN 1.0 AND 10.0),
+    is_premium      BOOLEAN         NOT NULL DEFAULT FALSE,
+    total_episodes  INT             NOT NULL DEFAULT 1 CHECK (total_episodes >= 1)
+);
+
+-- Many-to-many: one show can have many genres, one genre spans many shows
+CREATE TABLE show_genres (
+    show_id     INT     NOT NULL REFERENCES shows(id)  ON DELETE CASCADE,
+    genre_id    INT     NOT NULL REFERENCES genres(id) ON DELETE CASCADE,
+    PRIMARY KEY (show_id, genre_id)   -- composite PK, no separate id needed
+);
+
+CREATE TABLE subscriptions (
+    id              SERIAL      PRIMARY KEY,
+    user_id         INT         NOT NULL REFERENCES users(id),
+    plan            VARCHAR(20) NOT NULL
+                                CHECK (plan IN ('Mobile', 'Super', 'Premium')),
+    started_on      DATE        NOT NULL,
+    expires_on      DATE        NOT NULL,
+    CHECK (expires_on > started_on)   -- table-level constraint
+);
+
+CREATE TABLE watch_history (
+    id              SERIAL      PRIMARY KEY,
+    user_id         INT         NOT NULL REFERENCES users(id),
+    show_id         INT         NOT NULL REFERENCES shows(id),
+    watched_on      DATE        NOT NULL DEFAULT CURRENT_DATE,
+    minutes_watched INT         NOT NULL CHECK (minutes_watched > 0),
+    completed       BOOLEAN     NOT NULL DEFAULT FALSE
+);
+
+
+
+INSERT INTO users (name, email, city, state, joined_on, plan) VALUES
+('Aarav Mehta',         'aarav.mehta@gmail.com',       'Mumbai',           'Maharashtra',      '2023-01-10', 'Premium'),
+('Diya Sharma',         'diya.sharma@gmail.com',        'Delhi',            'Delhi',            '2023-02-14', 'Super'),
+('Rohan Iyer',          'rohan.iyer@gmail.com',         'Bengaluru',        'Karnataka',        '2023-03-05', 'Mobile'),
+('Priya Patel',         'priya.patel@gmail.com',        'Ahmedabad',        'Gujarat',          '2023-03-20', 'Free'),
+('Kabir Singh',         'kabir.singh@gmail.com',        'Chandigarh',       'Punjab',           '2023-04-08', 'Premium'),
+('Ananya Nair',         'ananya.nair@gmail.com',        'Kochi',            'Kerala',           '2023-04-22', 'Super'),
+('Vikram Rao',          'vikram.rao@gmail.com',         'Hyderabad',        'Telangana',        '2023-05-01', 'Free'),
+('Sneha Joshi',         'sneha.joshi@gmail.com',        'Pune',             'Maharashtra',      '2023-05-15', 'Mobile'),
+('Arjun Reddy',         'arjun.reddy@gmail.com',        'Chennai',          'Tamil Nadu',       '2023-06-03', 'Super'),
+('Meera Gupta',         'meera.gupta@gmail.com',        'Lucknow',          'Uttar Pradesh',    '2023-06-18', 'Free'),
+('Ravi Kumar',          'ravi.kumar@gmail.com',         'Patna',            'Bihar',            '2023-07-07', 'Mobile'),
+('Ishaan Verma',        'ishaan.verma@gmail.com',       'Jaipur',           'Rajasthan',        '2023-07-21', 'Premium'),
+('Kavya Pillai',        'kavya.pillai@gmail.com',       'Thiruvananthapuram','Kerala',          '2023-08-04', 'Super'),
+('Aditya Banerjee',     'aditya.banerjee@gmail.com',    'Kolkata',          'West Bengal',      '2023-08-19', 'Free'),
+('Pooja Desai',         'pooja.desai@gmail.com',        'Surat',            'Gujarat',          '2023-09-02', 'Mobile'),
+('Nikhil Mishra',       'nikhil.mishra@gmail.com',      'Bhopal',           'Madhya Pradesh',   '2023-09-16', 'Free'),
+('Shreya Kapoor',       'shreya.kapoor@gmail.com',      'Delhi',            'Delhi',            '2023-10-01', 'Premium'),
+('Rahul Nair',          'rahul.nair@gmail.com',         'Mangalore',        'Karnataka',        '2023-10-15', 'Super'),
+('Tanvi Shah',          'tanvi.shah@gmail.com',         'Vadodara',         'Gujarat',          '2023-11-01', 'Mobile'),
+('Harsh Tiwari',        'harsh.tiwari@gmail.com',       'Varanasi',         'Uttar Pradesh',    '2023-11-20', 'Free');
+
+
+-- 8 genres
+INSERT INTO genres (name) VALUES
+('Drama'),
+('Action'),
+('Comedy'),
+('Thriller'),
+('Romance'),
+('Crime'),
+('Documentary'),
+('Horror');
+
+
+-- 25 shows (mix of Indian and international, Hindi/Tamil/Telugu/English)
+INSERT INTO shows (title, language, release_year, rating, is_premium, total_episodes) VALUES
+-- Hindi shows
+('Panchayat',               'Hindi',    2020, 9.1, FALSE, 24),
+('Mirzapur',                'Hindi',    2018, 8.5, TRUE,  26),
+('Scam 1992',               'Hindi',    2020, 9.5, TRUE,  10),
+('Delhi Crime',             'Hindi',    2019, 8.5, TRUE,  14),
+('Aspirants',               'Hindi',    2021, 9.3, FALSE, 10),
+('Kota Factory',            'Hindi',    2019, 9.0, FALSE, 15),
+('TVF Pitchers',            'Hindi',    2015, 9.2, FALSE, 10),
+('Rocket Boys',             'Hindi',    2022, 8.8, TRUE,  8),
+('Jamtara',                 'Hindi',    2020, 7.5, TRUE,  18),
+('Bandish Bandits',         'Hindi',    2020, 8.5, FALSE, 10),
+
+-- Tamil shows
+('Vikram Vedha',            'Tamil',    2017, 8.4, TRUE,  1),
+('Vada Chennai',            'Tamil',    2018, 8.5, TRUE,  1),
+('Super Deluxe',            'Tamil',    2019, 8.4, TRUE,  1),
+
+-- Telugu shows
+('Aha OTT Originals S1',    'Telugu',   2021, 7.8, TRUE,  6),
+('Kshanam',                 'Telugu',   2016, 8.2, FALSE, 1),
+
+-- English shows
+('The Office (US)',         'English',  2005, 9.0, FALSE, 188),
+('Breaking Bad',            'English',  2008, 9.5, TRUE,  62),
+('Chernobyl',               'English',  2019, 9.4, TRUE,  5),
+('Ted Lasso',               'English',  2020, 8.8, FALSE, 34),
+('Succession',              'English',  2018, 9.3, TRUE,  39),
+
+-- Malayalam shows
+('Drishyam',                'Malayalam',2013, 8.8, FALSE, 1),
+('Kumbalangi Nights',       'Malayalam',2019, 8.5, FALSE, 1),
+
+-- Documentary
+('Wild Karnataka',          'Kannada',  2019, 8.7, FALSE, 1),
+('Explained (S1)',          'English',  2018, 8.2, FALSE, 16),
+('Indian Predator',         'Hindi',    2022, 7.9, TRUE,  9);
+
+
+-- show_genres junction (35 rows — many shows have 2-3 genres)
+INSERT INTO show_genres (show_id, genre_id) VALUES
+-- Panchayat (1): Drama, Comedy
+(1, 1), (1, 3),
+-- Mirzapur (2): Crime, Action, Drama
+(2, 6), (2, 2), (2, 1),
+-- Scam 1992 (3): Drama, Crime
+(3, 1), (3, 6),
+-- Delhi Crime (4): Crime, Drama, Thriller
+(4, 6), (4, 1), (4, 4),
+-- Aspirants (5): Drama
+(5, 1),
+-- Kota Factory (6): Drama
+(6, 1),
+-- TVF Pitchers (7): Drama, Comedy
+(7, 1), (7, 3),
+-- Rocket Boys (8): Drama
+(8, 1),
+-- Jamtara (9): Crime, Thriller
+(9, 6), (9, 4),
+-- Bandish Bandits (10): Drama, Romance
+(10, 1), (10, 5),
+-- Vikram Vedha (11): Action, Thriller, Crime
+(11, 2), (11, 4), (11, 6),
+-- Vada Chennai (12): Crime, Drama, Action
+(12, 6), (12, 1), (12, 2),
+-- Super Deluxe (13): Drama, Comedy, Thriller
+(13, 1), (13, 3), (13, 4),
+-- Breaking Bad (17): Drama, Crime, Thriller
+(17, 1), (17, 6), (17, 4),
+-- Chernobyl (18): Drama, Documentary
+(18, 1), (18, 7),
+-- Indian Predator (25): Crime, Documentary
+(25, 6), (25, 7),
+-- Wild Karnataka (23): Documentary
+(23, 7),
+-- Drishyam (21): Thriller, Drama, Crime
+(21, 4), (21, 1), (21, 6),
+-- Succession (20): Drama, Comedy
+(20, 1), (20, 3);
+
+
+-- 20 subscriptions (paid users have subscription records)
+INSERT INTO subscriptions (user_id, plan, started_on, expires_on) VALUES
+( 1, 'Premium', '2024-01-01', '2025-01-01'),
+( 2, 'Super',   '2024-01-15', '2025-01-15'),
+( 5, 'Premium', '2024-02-01', '2025-02-01'),
+( 6, 'Super',   '2024-02-10', '2025-02-10'),
+( 9, 'Super',   '2024-03-01', '2025-03-01'),
+(12, 'Premium', '2024-03-15', '2025-03-15'),
+(13, 'Super',   '2024-04-01', '2025-04-01'),
+(17, 'Premium', '2024-04-15', '2025-04-15'),
+(18, 'Super',   '2024-05-01', '2025-05-01'),
+( 3, 'Mobile',  '2024-01-20', '2024-07-20'),   -- expired
+( 8, 'Mobile',  '2024-02-05', '2024-08-05'),   -- expired
+(11, 'Mobile',  '2024-03-10', '2024-09-10'),   -- expired
+(15, 'Mobile',  '2024-04-20', '2024-10-20'),
+(19, 'Mobile',  '2024-05-05', '2024-11-05'),
+( 1, 'Premium', '2023-01-01', '2024-01-01'),   -- Aarav's previous subscription
+( 5, 'Super',   '2023-02-01', '2024-02-01'),   -- Kabir's previous
+(12, 'Super',   '2023-03-15', '2024-03-15'),   -- Ishaan's previous
+(17, 'Super',   '2023-04-15', '2024-04-15'),   -- Shreya's previous
+( 2, 'Mobile',  '2023-01-15', '2023-07-15'),   -- Diya's old mobile plan
+( 6, 'Mobile',  '2023-02-10', '2023-08-10');   -- Ananya's old mobile plan
+
+
+-- 50 watch_history entries
+INSERT INTO watch_history (user_id, show_id, watched_on, minutes_watched, completed) VALUES
+-- Aarav (Premium, heavy watcher)
+(1,  1,  '2024-01-05', 120, TRUE),
+(1,  3,  '2024-01-12', 180, TRUE),
+(1,  17, '2024-01-20', 150, TRUE),
+(1,  6,  '2024-02-03', 90,  FALSE),
+(1,  20, '2024-02-15', 200, TRUE),
+
+-- Diya (Super)
+(2,  1,  '2024-01-08', 110, TRUE),
+(2,  2,  '2024-01-22', 140, FALSE),
+(2,  10, '2024-02-10', 95,  TRUE),
+(2,  18, '2024-03-05', 300, TRUE),
+
+-- Rohan (Mobile)
+(3,  5,  '2024-01-15', 80,  TRUE),
+(3,  6,  '2024-01-28', 75,  TRUE),
+(3,  7,  '2024-02-14', 60,  FALSE),
+
+-- Priya (Free)
+(4,  1,  '2024-02-01', 50,  FALSE),
+(4,  5,  '2024-02-20', 90,  TRUE),
+
+-- Kabir (Premium)
+(5,  17, '2024-02-05', 170, TRUE),
+(5,  20, '2024-02-18', 220, TRUE),
+(5,  3,  '2024-03-01', 160, TRUE),
+(5,  4,  '2024-03-14', 130, FALSE),
+
+-- Ananya (Super)
+(6,  10, '2024-01-25', 85,  TRUE),
+(6,  21, '2024-02-08', 120, TRUE),
+(6,  22, '2024-03-20', 140, TRUE),
+
+-- Vikram (Free)
+(7,  1,  '2024-01-10', 45,  FALSE),
+(7,  23, '2024-02-25', 95,  TRUE),
+
+-- Sneha (Mobile)
+(8,  6,  '2024-02-12', 70,  TRUE),
+(8,  7,  '2024-03-01', 65,  TRUE),
+(8,  1,  '2024-03-18', 100, TRUE),
+
+-- Arjun (Super)
+(9,  11, '2024-01-18', 160, TRUE),
+(9,  12, '2024-02-02', 175, TRUE),
+(9,  13, '2024-03-10', 145, TRUE),
+(9,  3,  '2024-03-25', 180, TRUE),
+
+-- Meera (Free)
+(10, 1,  '2024-01-30', 55,  FALSE),
+
+-- Ravi (Mobile)
+(11, 5,  '2024-02-22', 80,  TRUE),
+(11, 6,  '2024-03-08', 75,  TRUE),
+
+-- Ishaan (Premium)
+(12, 17, '2024-01-05', 155, TRUE),
+(12, 18, '2024-01-19', 290, TRUE),
+(12, 20, '2024-02-10', 215, TRUE),
+(12, 3,  '2024-03-05', 165, TRUE),
+
+-- Kavya (Super)
+(13, 21, '2024-02-14', 125, TRUE),
+(13, 22, '2024-03-02', 138, TRUE),
+
+-- Pooja (Mobile)
+(15, 7,  '2024-03-15', 60,  TRUE),
+(15, 1,  '2024-04-01', 110, TRUE),
+
+-- Shreya (Premium)
+(17, 3,  '2024-01-08', 175, TRUE),
+(17, 20, '2024-01-25', 200, TRUE),
+(17, 17, '2024-02-20', 148, FALSE),
+(17, 4,  '2024-03-12', 135, TRUE),
+
+-- Rahul (Super)
+(18, 11, '2024-02-18', 155, TRUE),
+(18, 12, '2024-03-05', 170, TRUE),
+
+-- Tanvi (Mobile)
+(19, 5,  '2024-03-22', 85,  TRUE),
+(19, 1,  '2024-04-10', 100, TRUE),
+
+-- Harsh (Free)
+(20, 1,  '2024-02-28', 40,  FALSE),
+(20, 23, '2024-03-15', 90,  TRUE);
+
+select * from show_genres
+
+-- Panchayat  [Drama, Comedy]
+
+SELECT 'users'          AS table_name, COUNT(*) AS row_count FROM users
+UNION ALL
+SELECT 'genres',                        COUNT(*)               FROM genres
+UNION ALL
+SELECT 'shows',                         COUNT(*)               FROM shows
+UNION ALL
+SELECT 'show_genres',                   COUNT(*)               FROM show_genres
+UNION ALL
+SELECT 'subscriptions',                 COUNT(*)               FROM subscriptions
+UNION ALL
+SELECT 'watch_history',                 COUNT(*)               FROM watch_history;
+
+
+-- Subqueries ( Scalar, MultiRows (One column/multiple colums), Correlated Subquery )
+
+
+-- Question: which shows have been watched by Premium users?
+ ---> find out who are the premium users
+select id from users where plan= 'Premium'
+
+select distinct show_id 
+from watch_history -- main query
+where user_id in (
+					select id 
+					from users 
+					where plan= 'Premium') -- subquery / inner query
+
+-- 1
+-- 3
+-- 4
+-- 6
+-- 17
+-- 18
+-- 20
+
+
+-- If want to get the names of the shows from the previous question
+select title as shows_watched_by_premium_users
+from shows 
+where id in (
+
+select distinct show_id 
+from watch_history -- main query
+where user_id in (
+					select id 
+					from users 
+					where plan= 'Premium') -- subquery / inner query
+)
+
+-- Question:  Shows that have at least one watch history entry
+	-- (i.e. shows that have actually been watched)
+	--> which are the shows that are in the watch history
+
+select title 
+from shows 
+where id in 
+(select distinct show_id from watch_history) 
+order by title
+
+
+-- Solve the same question using join
+select distinct(title)
+from watch_history w
+join shows s
+on s.id = w.show_id
+order by title
+
+
+-- Question: Find all users who have never watched any show rated above 9.0. Show name, city, and plan.
+
+select id, name, city , plan 
+from users 
+where id not in
+(select distinct user_id 
+from watch_history 
+where show_id in (select id from shows where rating > 9.0))  -- users who have watched 9+ shows
+
+select * 
+from watch_history w
+join shows s 
+on s.id = w.show_id
+where user_id in  (6, 13, 14, 16, 18)
+
+
+--  Users who watched every show rated above 9.0:
+ --> we need to find out how many 9+ shows a user has seen that should be equal to total 9+ shows
+
+
+ --> how many 9+ rated shows
+ -- select  count(*) from shows group by rating having rating > 9.0
+ select count(*) from shows where rating > 9.0
+
+ --> Which shows are 9+ rated
+ select id from shows where rating > 9.0
+
+
+ --> how many 9+ shows a user has seen
+
+ select user_id, count(distinct show_id) 
+ from watch_history
+ where show_id in (select id from shows where rating > 9.0)
+ group by user_id
+ having  count(distinct show_id) =  ( select count(*) from shows where rating > 9.0)
+ 
+ --> first find how many total 9+ movies are there (result 1)
+ --> filter the watch_history for 9+ rated shows
+ --> groupby user_id and find out how many 9+ shows a user has watched (result 2)
+ --> filter rows where result2 is equal to result 1
+
+select name 
+from users 
+where id in 
+( select user_id, count(distinct show_id) 
+ from watch_history
+ where show_id in (select id from shows where rating > 9.0)
+ group by user_id
+ having  count(distinct show_id) =  ( select count(*) from shows where rating > 9.0))
+
+-- Each user's last watched show
+
+---> using a CTE
+with ranked as (select * , 
+						row_number () over ( partition by user_id order by watched_on desc ) as rn
+				from  watch_history)
+
+select user_id, users.name, title, watched_on from ranked 
+left join shows  on ranked.show_id = shows.id
+join users on users.id = ranked.user_id
+where rn = 1
+
+1	"Succession"	"2024-02-15"
+2	"Chernobyl"	"2024-03-05"
+3	"TVF Pitchers"	"2024-02-14"
+4	"Aspirants"	"2024-02-20"
+5	"Delhi Crime"	"2024-03-14"
+6	"Kumbalangi Nights"	"2024-03-20"
+7	"Wild Karnataka"	"2024-02-25"
+8	"Panchayat"	"2024-03-18"
+9	"Scam 1992"	"2024-03-25"
+10	"Panchayat"	"2024-01-30"
+11	"Kota Factory"	"2024-03-08"
+12	"Scam 1992"	"2024-03-05"
+13	"Kumbalangi Nights"	"2024-03-02"
+15	"Panchayat"	"2024-04-01"
+17	"Delhi Crime"	"2024-03-12"
+18	"Vada Chennai"	"2024-03-05"
+19	"Panchayat"	"2024-04-10"
+20	"Wild Karnataka"	"2024-03-15"
+
+-- Verification of the above result
+select * from watch_history join shows on shows.id = watch_history.show_id where user_id = 15
+
+select user_id, count(*) from watch_history group by (user_id) order by user_id
+
+
+

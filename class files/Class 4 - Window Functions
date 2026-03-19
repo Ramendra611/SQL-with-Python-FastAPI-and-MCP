@@ -1,0 +1,113 @@
+-- drop table employees
+-- drop table monthly_sales
+-- drop table orders
+
+CREATE TABLE employees (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(100),
+    department  VARCHAR(50),
+    role        VARCHAR(50),
+    salary      INT,
+    hire_date   DATE,
+    manager_id  INT
+);
+
+CREATE TABLE monthly_sales (
+    id           SERIAL PRIMARY KEY,
+    employee_id  INT REFERENCES employees(id),
+    sale_month   DATE,    -- first of each month
+    amount       NUMERIC(12,2)
+);
+
+CREATE TABLE orders (
+    order_id     SERIAL PRIMARY KEY,
+    customer_id  INT,
+    order_date   DATE,
+    amount       NUMERIC(10,2)
+);
+
+
+
+
+INSERT INTO employees (id, name, department, role, salary, hire_date, manager_id) VALUES
+( 1, 'Arjun Mehta',    'Engineering', 'Senior Engineer',   90000, '2021-03-15', 5),
+( 2, 'Priya Sharma',   'Engineering', 'Engineer',          85000, '2022-06-01', 5),
+( 3, 'Rohit Iyer',     'Sales',       'Sales Executive',   70000, '2021-08-20', 7),
+( 4, 'Sneha Nair',     'Sales',       'Senior Sales Exec', 75000, '2020-11-10', 7),
+( 5, 'Vikram Rao',     'Engineering', 'Engineering Lead',  95000, '2019-02-01', NULL),
+( 6, 'Kavya Pillai',   'HR',          'HR Executive',      65000, '2022-09-15', 8),
+( 7, 'Kabir Singh',    'HR',          'Sales Lead',        72000, '2020-05-20', 8),
+( 8, 'Aditya Sharma',  'HR',          'HR Lead',           80000, '2018-07-10', NULL),
+( 9, 'Meera Gupta',    'Sales',       'Sales Executive',   68000, '2023-01-05', 7),
+(10, 'Harsh Tiwari',   'Engineering', 'Engineer',          82000, '2023-04-01', 5),
+(11, 'Vijay Tiwari',   'Sales', 'Engineer',          82000, '2023-04-01', 5),
+(12, 'Sujay Tiwari',   'HR', 'Engineer',          72000, '2023-04-01', 5);
+
+INSERT INTO monthly_sales (employee_id, sale_month, amount) VALUES
+(3, '2024-01-01', 45000), (3, '2024-02-01', 52000), (3, '2024-03-01', 48000),
+(3, '2024-04-01', 61000), (3, '2024-05-01', 55000), (3, '2024-06-01', 49000),
+(4, '2024-01-01', 68000), (4, '2024-02-01', 71000), (4, '2024-03-01', 65000),
+(4, '2024-04-01', 74000), (4, '2024-05-01', 70000), (4, '2024-06-01', 78000),
+(9, '2024-01-01', 38000), (9, '2024-02-01', 42000), (9, '2024-03-01', 40000),
+(9, '2024-04-01', 45000), (9, '2024-05-01', 43000), (9, '2024-06-01', 47000);
+
+INSERT INTO orders (customer_id, order_date, amount) VALUES
+(101, '2024-01-05', 1200), (102, '2024-01-12', 3400), (101, '2024-01-20', 800),
+(103, '2024-02-03',  650), (104, '2024-02-14', 2100), (102, '2024-02-28', 4500),
+(105, '2024-03-05',  320), (103, '2024-03-11', 1800), (101, '2024-03-22', 950),
+(106, '2024-03-30', 2800), (104, '2024-04-08', 1100), (105, '2024-04-15', 5600),
+(107, '2024-04-22',  280), (102, '2024-05-01', 3200), (106, '2024-05-10', 4100);
+
+select * from employees
+
+-- Window Function
+	function_name() OVER ( partition by col1, col1 order by col3 )
+
+-- - ROW_NUMBER
+-- - RANK --> if there is a tie then rows will be skipped (1, 1, 3)
+-- - DENSE_RANK -> the rank is not skipped there is no gap(1, 1, 2, 2, 2, 3)
+
+
+-- Q1. Rank all employees by salary and show the difference between ROW_NUMBER, RANK, and DENSE_RANK
+
+select name, 
+		department, 
+		salary, 
+		row_number () over(order by salary desc ) as row_num,
+		rank() over (order by salary desc ) as rnk, 
+		dense_rank() over (order by salary desc ) as dense_rnk
+		
+from employees 
+order by salary desc
+
+
+-- Q2. Rank employees by salary within their department
+select *, 
+		dense_rank() over (partition by department order by salary desc) as rn
+
+from employees
+
+
+-- find the highest earning people in each department
+
+with ranked as (select *, 
+		dense_rank() over (partition by department order by salary desc) as rn
+
+from employees)
+
+select * from ranked where rn = 1 -- selecting only the top salary in each department
+
+
+-- Show each employee's salary alongside their department's average, and the difference
+select * , 
+		round(avg(salary) over (partition by department)) as deptt_average_salary
+from employees
+
+
+-- Which are the department whose average salary is less than 80000
+select department, avg(salary)
+from employees 
+group by department
+
+-- having avg(salary)< 80000
+
