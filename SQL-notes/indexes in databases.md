@@ -924,4 +924,4 @@ For PostgreSQL:
 - **EXPLAIN ANALYZE in depth** — Bitmap scans, hash joins, nested loops
 - **Index types** — Hash, GIN (for full-text and JSONB), BRIN (for huge time-series tables)
 
-All of these are covered in the full indexing guide (`indexing_guide.md`).
+
