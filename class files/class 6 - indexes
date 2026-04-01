@@ -1,0 +1,79 @@
+CREATE TABLE users (
+    id          INT,
+    first_name  VARCHAR(50),
+    last_name   VARCHAR(50),
+    age         INT,
+    email       VARCHAR(150),
+    city        VARCHAR(50),
+    signup_date DATE
+);
+
+-- load the data into the users table from a csv file
+
+select count(*) from users
+
+select * from users limit 10
+
+select count(*) from users
+where first_name = 'Vijay'
+
+-- run a filter query without any index
+explain analyze -- this line will tell how SQL is percieving our query
+select * from users
+where first_name = 'Vijay'
+
+-- create an index
+create index index_first_name
+on users(first_name)
+
+explain analyze -- this line will tell how SQL is percieving our query
+select * from users
+where first_name = 'Vijay'
+
+explain analyze -- this line will tell how SQL is percieving our query
+select * from users
+where first_name = 'Vijay'
+
+
+-- select indexname
+-- from pg_indexes
+
+drop index index_first_name
+
+explain analyse
+select * from users
+where first_name = 'Meera' and last_name = 'Gupta'
+
+
+drop index index_first_last_name
+
+create index index_first_last_name
+on users(first_name, last_name)
+
+
+explain analyse
+select * from users
+where first_name = 'Meera' and last_name = 'Gupta'
+
+
+
+explain analyze
+select * from users
+where age = 24
+
+create index index_age
+on users(age)
+
+
+drop index index_age
+
+explain analyze
+select * from users
+where age between 20 and 30
+
+
+
+
+
+
+
