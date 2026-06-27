@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# VS Code (optional)
+.vscode/
+
+# Logs
+*.log
+
+# Environment variables
+.env
